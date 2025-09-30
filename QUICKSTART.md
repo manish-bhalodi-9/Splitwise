@@ -55,7 +55,9 @@ cd Splitwise
 3. **Enable APIs** (APIs & Services > Library)
    - Enable "Google Sheets API"
    - Enable "Google Drive API"
-   - Enable "Google Sign-In API"
+   - Enable "Google People API" (optional but recommended)
+   
+   **Note:** Google Sign-In doesn't require a separate API - it's part of Google Identity Services
 
 4. **Get SHA-1 Fingerprint**
    

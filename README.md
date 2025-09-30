@@ -82,7 +82,8 @@ Follow these steps to configure Google Cloud services:
 
 2. **Enable Required APIs**
    - Navigate to "APIs & Services" > "Library"
-   - Enable: Google Sheets API v4, Google Drive API v3, Google Sign-In API, Google People API
+   - Enable: Google Sheets API v4, Google Drive API v3, Google People API
+   - Note: Google Sign-In is part of Google Identity Services (no separate API to enable)
 
 3. **Create OAuth 2.0 Credentials**
    - Go to "APIs & Services" > "Credentials"

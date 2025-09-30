@@ -41,14 +41,12 @@ This guide will walk you through setting up Google Cloud Console for the Expense
 - Click on it
 - Click **"Enable"**
 
-### Google Sign-In API (Google Identity Services)
-- Search for "Google+ API" (legacy) or use Google Identity Services
-- Click **"Enable"**
-
 ### Google People API (Optional but recommended)
 - Search for "Google People API"
 - Click on it
 - Click **"Enable"**
+
+**Note about Google Sign-In:** Google Sign-In uses Google Identity Services, which doesn't require enabling a separate API. It's automatically available once you configure OAuth credentials.
 
 ---
 
@@ -233,7 +231,6 @@ When you're ready to create a release build:
 - [ ] Google Cloud project created
 - [ ] Google Sheets API enabled
 - [ ] Google Drive API enabled
-- [ ] Google Sign-In API enabled
 - [ ] OAuth consent screen configured
 - [ ] OAuth 2.0 credentials created (Android)
 - [ ] SHA-1 fingerprint added
