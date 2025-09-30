@@ -16,6 +16,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.expensesplitter.app.data.local.entity.GroupEntity
+import com.expensesplitter.app.util.FormatUtils
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,12 +33,7 @@ fun GroupListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("My Groups") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
+                title = { Text("My Groups") }
             )
         },
         floatingActionButton = {
@@ -75,20 +73,53 @@ fun GroupListScreen(
                     }
                 }
                 else -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    Column(
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        items(uiState.groups) { group ->
-                            GroupListItem(
-                                group = group,
-                                isActive = group.groupId == uiState.activeGroupId,
-                                onGroupClick = {
-                                    viewModel.setActiveGroup(group.groupId)
-                                    onGroupSelected()
-                                }
-                            )
+                        // Overall balance header
+                        OverallBalanceHeader(
+                            totalBalance = uiState.groups.sumOf { it.balance }
+                        )
+                        
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(uiState.groups) { groupWithBalance ->
+                                GroupListItem(
+                                    groupWithBalance = groupWithBalance,
+                                    isActive = groupWithBalance.group.groupId == uiState.activeGroupId,
+                                    onGroupClick = {
+                                        viewModel.setActiveGroup(groupWithBalance.group.groupId)
+                                        onGroupSelected()
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Loading overlay when switching groups
+            if (uiState.switchingGroup) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(enabled = false) { },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Surface(
+                        modifier = Modifier.size(100.dp),
+                        shape = MaterialTheme.shapes.medium,
+                        color = MaterialTheme.colorScheme.surface,
+                        tonalElevation = 8.dp
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
                         }
                     }
                 }
@@ -114,11 +145,52 @@ fun GroupListScreen(
 }
 
 @Composable
+fun OverallBalanceHeader(totalBalance: Double) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 2.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = if (totalBalance >= 0) {
+                    "Overall, you are owed"
+                } else {
+                    "Overall, you owe"
+                },
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            
+            Text(
+                text = FormatUtils.formatCurrency(kotlin.math.abs(totalBalance), "INR"),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = if (totalBalance >= 0) {
+                    Color(0xFF4CAF50) // Green
+                } else {
+                    MaterialTheme.colorScheme.error // Red
+                }
+            )
+        }
+    }
+}
+
+@Composable
 fun GroupListItem(
-    group: GroupEntity,
+    groupWithBalance: GroupWithBalance,
     isActive: Boolean,
     onGroupClick: () -> Unit
 ) {
+    val group = groupWithBalance.group
+    val balance = groupWithBalance.balance
+    
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -134,36 +206,92 @@ fun GroupListItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            // Group Icon
+            Card(
+                modifier = Modifier.size(60.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Home,
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+            
+            // Group Info
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                // Group Name
                 Text(
                     text = group.groupName,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal
+                    fontWeight = FontWeight.Bold
                 )
-                if (group.description != null) {
-                    Spacer(modifier = Modifier.height(4.dp))
+                
+                // Balance
+                if (balance > 0) {
                     Text(
-                        text = group.description,
+                        text = "you are owed ${FormatUtils.formatCurrency(balance, "INR")}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFF4CAF50) // Green
+                    )
+                } else if (balance < 0) {
+                    Text(
+                        text = "you owe ${FormatUtils.formatCurrency(-balance, "INR")}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error // Red
+                    )
+                } else {
+                    Text(
+                        text = "settled up",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Spacer(modifier = Modifier.height(4.dp))
+                
+                // Member details
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (group.description != null) {
+                        Text(
+                            text = group.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
+                        )
+                    }
+                }
+                
+                // Show member count
                 Text(
-                    text = "${group.members.size} members",
+                    text = "${groupWithBalance.memberCount} member${if (groupWithBalance.memberCount != 1) "s" else ""}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             
+            // Active indicator
             if (isActive) {
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = "Active",
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }
