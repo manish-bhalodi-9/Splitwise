@@ -53,8 +53,9 @@ interface ExpenseDao {
     @Query("SELECT SUM(amount) FROM expenses WHERE groupId = :groupId AND categoryId = :categoryId AND date BETWEEN :startDate AND :endDate AND status != 'DELETED'")
     suspend fun getTotalExpensesByCategory(groupId: String, categoryId: String, startDate: Long, endDate: Long): Double?
     
-    @Query("SELECT categoryId, SUM(amount) as total FROM expenses WHERE groupId = :groupId AND date BETWEEN :startDate AND :endDate AND status != 'DELETED' GROUP BY categoryId ORDER BY total DESC")
-    suspend fun getCategoryTotals(groupId: String, startDate: Long, endDate: Long): Map<String, Double>
+    // Temporarily commented out to isolate build issue
+    // @Query("SELECT categoryId, SUM(amount) as total FROM expenses WHERE groupId = :groupId AND date BETWEEN :startDate AND :endDate AND status != 'DELETED' GROUP BY categoryId ORDER BY total DESC")
+    // suspend fun getCategoryTotals(groupId: String, startDate: Long, endDate: Long): List<CategoryTotal>
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertExpense(expense: ExpenseEntity)

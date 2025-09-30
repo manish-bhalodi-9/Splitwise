@@ -85,6 +85,60 @@ Follow these steps to configure Google Cloud services:
    - Enable: Google Sheets API v4, Google Drive API v3, Google People API
    - Note: Google Sign-In is part of Google Identity Services (no separate API to enable)
 
+3. **Configure OAuth Consent Screen**
+   - Navigate to "APIs & Services" > "OAuth consent screen"
+   - Choose "External" user type
+   - Fill in app name, support email, developer contact
+   - Add scopes: `userinfo.email`, `userinfo.profile`, `drive.file`, `spreadsheets`
+   - Add test users (your Google account email)
+
+4. **Create OAuth 2.0 Credentials**
+   - Navigate to "APIs & Services" > "Credentials"
+   - Click "Create Credentials" > "OAuth 2.0 Client ID"
+   - Select "Android" as application type
+   - Package name: `com.expensesplitter.app`
+   - Get SHA-1 fingerprint (see below)
+   - Click "Create" and note your Client ID
+
+5. **Get SHA-1 Fingerprint**
+   
+   **Windows:**
+   ```powershell
+   & "C:\Program Files\Java\jdk-21\bin\keytool.exe" -list -v -keystore "$env:USERPROFILE\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android
+   ```
+   
+   **Mac/Linux:**
+   ```bash
+   keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
+   ```
+
+**Detailed Guide**: See [`docs/GOOGLE_CLOUD_SETUP.md`](docs/GOOGLE_CLOUD_SETUP.md)
+
+---
+
+### 3. Configure Local Environment
+
+**IMPORTANT**: Never commit your Google Client ID to version control!
+
+1. **Copy the template file**:
+   ```bash
+   cp local.properties.template local.properties
+   ```
+
+2. **Edit `local.properties`** and add your Client ID:
+   ```properties
+   sdk.dir=/path/to/Android/Sdk
+   google.client.id=YOUR_CLIENT_ID_FROM_GOOGLE_CLOUD.apps.googleusercontent.com
+   ```
+
+3. **Verify `.gitignore`** includes `local.properties` (already configured)
+
+The `google_client_id` string resource will be automatically generated from `local.properties` at build time.
+
+---
+
+### 4. Build and Run
+
 3. **Create OAuth 2.0 Credentials**
    - Go to "APIs & Services" > "Credentials"
    - Configure OAuth consent screen

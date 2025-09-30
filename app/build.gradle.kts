@@ -1,9 +1,19 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
     id("org.jetbrains.kotlin.plugin.serialization")
+}
+
+// Load local.properties
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    FileInputStream(localPropertiesFile).use { localProperties.load(it) }
 }
 
 android {
@@ -21,6 +31,11 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // Load Google Client ID from local.properties
+        val googleClientId = localProperties.getProperty("google.client.id") ?: ""
+        buildConfigField("String", "GOOGLE_CLIENT_ID", "\"$googleClientId\"")
+        resValue("string", "google_client_id", googleClientId)
 
         // Room schema export directory
         ksp {
@@ -79,6 +94,7 @@ android {
             excludes += "META-INF/NOTICE.txt"
             excludes += "META-INF/notice.txt"
             excludes += "META-INF/*.kotlin_module"
+            excludes += "META-INF/INDEX.LIST"
         }
     }
 }

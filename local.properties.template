@@ -1,0 +1,12 @@
+## This file must *NOT* be checked into Version Control Systems,
+# as it contains information specific to your local configuration.
+#
+# Location of the SDK. This is only used by Gradle.
+# For customization when using a Version Control System, please read the
+# header note.
+sdk.dir=/path/to/your/Android/Sdk
+
+# Google OAuth Client ID
+# Get your Client ID from: https://console.cloud.google.com/apis/credentials
+# Instructions: See docs/GOOGLE_CLOUD_SETUP.md
+google.client.id=YOUR_GOOGLE_CLIENT_ID_HERE

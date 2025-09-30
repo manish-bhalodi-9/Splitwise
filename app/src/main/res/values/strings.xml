@@ -3,7 +3,8 @@
     <string name="app_name">Expense Splitter</string>
     
     <!-- Google OAuth -->
-    <string name="google_client_id">YOUR_GOOGLE_CLIENT_ID_HERE</string>
+    <!-- NOTE: google_client_id is generated from local.properties at build time -->
+    <!-- Add your Client ID to local.properties: google.client.id=YOUR_CLIENT_ID -->
     
     <!-- Authentication -->
     <string name="sign_in_with_google">Sign in with Google</string>

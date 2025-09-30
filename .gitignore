@@ -24,6 +24,10 @@ build/
 app/build/
 */build/
 
+# Gradle distribution zips (downloaded automatically)
+*.zip
+gradle-*.zip
+
 # Local configuration file (sdk path, etc)
 local.properties
 
