@@ -96,21 +96,37 @@ This guide will walk you through setting up Google Cloud Console for the Expense
 
 ### Get Your Debug SHA-1 Certificate Fingerprint
 
-1. Open a terminal/command prompt
-2. Run the following command:
+#### **Windows (PowerShell)**
 
-**Windows (PowerShell):**
+**Option 1: Using Android Studio's bundled Java (Recommended)**
 ```powershell
-keytool -list -v -keystore "$env:USERPROFILE\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android
+& "C:\Program Files\Android\Android Studio\jbr\bin\keytool.exe" -list -v -keystore "$env:USERPROFILE\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android
 ```
 
-**Mac/Linux:**
+**Option 2: If you have Java JDK installed separately**
+```powershell
+& "C:\Program Files\Java\jdk-17\bin\keytool.exe" -list -v -keystore "$env:USERPROFILE\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android
+```
+*(Replace `jdk-17` with your actual JDK version)*
+
+**Can't find keytool? Use this command to locate it:**
+```powershell
+Get-ChildItem -Path "C:\Program Files" -Recurse -Filter "keytool.exe" -ErrorAction SilentlyContinue | Select-Object FullName
+```
+
+#### **Mac/Linux**
 ```bash
 keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
 ```
 
-3. Look for **SHA1** fingerprint in the output
-4. Copy the SHA-1 value (looks like: `AB:CD:EF:12:34:56...`)
+#### **What to look for:**
+
+In the output, find the line that says:
+```
+SHA1: AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF:12
+```
+
+Copy this entire SHA-1 fingerprint value (with colons)
 
 ### Create OAuth Client ID
 

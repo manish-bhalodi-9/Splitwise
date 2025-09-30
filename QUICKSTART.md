@@ -63,13 +63,15 @@ cd Splitwise
    
    **Windows (PowerShell):**
    ```powershell
-   keytool -list -v -keystore "$env:USERPROFILE\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android
+   & "C:\Program Files\Android\Android Studio\jbr\bin\keytool.exe" -list -v -keystore "$env:USERPROFILE\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android
    ```
    
    **Mac/Linux:**
    ```bash
    keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
    ```
+   
+   Copy the SHA1 value from the output (looks like `AB:CD:EF:12:34:56...`)
    
    Copy the SHA1 value (looks like: `AB:CD:EF:12:34:...`)
 
@@ -206,6 +208,39 @@ You now have:
 - ✅ Solution: Enable in Settings > Security
 
 **More issues?** See `docs/TROUBLESHOOTING.md`
+
+---
+
+## Common Issues & Quick Fixes
+
+### ❌ "keytool is not recognized" (Windows)
+
+**Problem:** PowerShell doesn't find keytool command.
+
+**Solution:** Use the full path to keytool:
+```powershell
+& "C:\Program Files\Android\Android Studio\jbr\bin\keytool.exe" -list -v -keystore "$env:USERPROFILE\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android
+```
+
+**Find keytool location:**
+```powershell
+Get-ChildItem -Path "C:\Program Files" -Recurse -Filter "keytool.exe" -ErrorAction SilentlyContinue | Select-Object FullName
+```
+
+### ❌ "debug.keystore not found"
+
+**Problem:** Debug keystore doesn't exist.
+
+**Solution:** Build the app once in Android Studio - it will generate automatically.
+
+### ❌ Can't find Google Sign-In API
+
+**Problem:** Looking for "Google Sign-In API" in API Library.
+
+**Solution:** You don't need to enable it! It's part of Google Identity Services. Just enable:
+- Google Sheets API
+- Google Drive API
+- Google People API (optional)
 
 ---
 
