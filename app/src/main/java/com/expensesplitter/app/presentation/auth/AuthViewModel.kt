@@ -5,7 +5,10 @@ import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.expensesplitter.app.R
+import com.expensesplitter.app.data.local.entity.UserEntity
+import com.expensesplitter.app.data.preferences.UserPreferencesRepository
 import com.expensesplitter.app.data.remote.GoogleApiClient
+import com.expensesplitter.app.data.repository.UserRepository
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +22,9 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val googleApiClient: GoogleApiClient
+    private val googleApiClient: GoogleApiClient,
+    private val userRepository: UserRepository,
+    private val preferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
     
     private val _authState = MutableStateFlow<AuthState>(AuthState.Initial)
@@ -67,12 +72,31 @@ class AuthViewModel @Inject constructor(
                 
                 if (account != null) {
                     val result = googleApiClient.initializeServices(account)
-                    _authState.value = if (result.isSuccess) {
+                    if (result.isSuccess) {
                         android.util.Log.d("AuthViewModel", "Services initialized successfully")
-                        AuthState.Authenticated(account.email ?: "")
+                        
+                        // Save user to database and preferences
+                        val userId = account.id ?: account.email ?: ""
+                        val email = account.email ?: ""
+                        val name = account.displayName ?: email.substringBefore("@")
+                        
+                        val user = UserEntity(
+                            userId = userId,
+                            email = email,
+                            displayName = name,
+                            photoUrl = account.photoUrl?.toString(),
+                            authToken = account.idToken
+                        )
+                        
+                        userRepository.insertUser(user)
+                        userRepository.setCurrentUser(userId)
+                        preferencesRepository.setUserInfo(userId, email, name)
+                        
+                        android.util.Log.d("AuthViewModel", "User saved: $email")
+                        _authState.value = AuthState.Authenticated(email)
                     } else {
                         android.util.Log.e("AuthViewModel", "Failed to initialize services: ${result.exceptionOrNull()?.message}")
-                        AuthState.Error("Failed to initialize services: ${result.exceptionOrNull()?.message}")
+                        _authState.value = AuthState.Error("Failed to initialize services: ${result.exceptionOrNull()?.message}")
                     }
                 } else {
                     android.util.Log.e("AuthViewModel", "Account is null")

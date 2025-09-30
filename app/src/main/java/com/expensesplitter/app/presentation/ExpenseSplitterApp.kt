@@ -1,13 +1,13 @@
 package com.expensesplitter.app.presentation
 
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.expensesplitter.app.presentation.auth.AuthScreen
+import com.expensesplitter.app.presentation.dashboard.DashboardScreen
+import com.expensesplitter.app.presentation.expense.AddExpenseScreen
+import com.expensesplitter.app.presentation.group.CreateGroupScreen
 
 @Composable
 fun ExpenseSplitterApp() {
@@ -28,21 +28,38 @@ fun ExpenseSplitterApp() {
         }
         
         composable("dashboard") {
-            // Dashboard will be implemented
-            DashboardPlaceholder()
+            DashboardScreen(
+                onNavigateToAddExpense = {
+                    navController.navigate("addExpense")
+                },
+                onNavigateToCreateGroup = {
+                    navController.navigate("createGroup")
+                },
+                onNavigateToExpenseDetail = { _ ->
+                    // TODO: Navigate to expense detail
+                }
+            )
         }
-    }
-}
-
-@Composable
-fun DashboardPlaceholder() {
-    Scaffold { paddingValues ->
-        Surface(
-            modifier = Modifier.padding(paddingValues)
-        ) {
-            Text(
-                text = "Dashboard Coming Soon",
-                style = MaterialTheme.typography.headlineMedium
+        
+        composable("addExpense") {
+            AddExpenseScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onExpenseAdded = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable("createGroup") {
+            CreateGroupScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onGroupCreated = {
+                    navController.popBackStack()
+                }
             )
         }
     }
