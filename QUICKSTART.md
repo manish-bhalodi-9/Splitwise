@@ -31,6 +31,8 @@ cd Splitwise
 
 ## Step 2: Open in Android Studio (2 minutes)
 
+### **Option A: With Android Studio**
+
 1. Launch Android Studio
 2. Click **"Open"**
 3. Navigate to the `Splitwise` folder
@@ -38,6 +40,20 @@ cd Splitwise
 5. Wait for Gradle sync to complete (may take a few minutes)
 
 **If sync fails:** Check your internet connection and Android SDK installation.
+
+### **Option B: Without Android Studio (Command Line)**
+
+If you don't have Android Studio, you can build using Gradle:
+
+1. Install [Java JDK 17+](https://www.oracle.com/java/technologies/downloads/)
+2. Install [Android SDK Command Line Tools](https://developer.android.com/studio#command-line-tools-only)
+3. Set ANDROID_HOME environment variable
+4. Build using Gradle wrapper:
+   ```powershell
+   .\gradlew assembleDebug
+   ```
+
+**Note:** Android Studio is highly recommended for development. Command-line builds are for advanced users or CI/CD.
 
 ---
 
@@ -217,14 +233,21 @@ You now have:
 
 **Problem:** PowerShell doesn't find keytool command.
 
-**Solution:** Use the full path to keytool:
+**Solution 1 - With Android Studio:**
 ```powershell
 & "C:\Program Files\Android\Android Studio\jbr\bin\keytool.exe" -list -v -keystore "$env:USERPROFILE\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android
 ```
 
-**Find keytool location:**
+**Solution 2 - Without Android Studio (using Java JDK):**
 ```powershell
-Get-ChildItem -Path "C:\Program Files" -Recurse -Filter "keytool.exe" -ErrorAction SilentlyContinue | Select-Object FullName
+# Find your Java version first
+java -version
+
+# Find keytool location
+Get-ChildItem -Path "C:\Program Files\Java" -Recurse -Filter "keytool.exe" -ErrorAction SilentlyContinue | Select-Object FullName
+
+# Use the path found (e.g., jdk-21)
+& "C:\Program Files\Java\jdk-21\bin\keytool.exe" -list -v -keystore "$env:USERPROFILE\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android
 ```
 
 ### ❌ "debug.keystore not found"

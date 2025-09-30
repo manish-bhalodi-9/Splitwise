@@ -96,18 +96,42 @@ This guide will walk you through setting up Google Cloud Console for the Expense
 
 ### Get Your Debug SHA-1 Certificate Fingerprint
 
-#### **Windows (PowerShell)**
+#### **If you DON'T have Android Studio installed:**
 
-**Option 1: Using Android Studio's bundled Java (Recommended)**
+**Step 1: Check if you have Java JDK**
+```powershell
+java -version
+```
+
+If you don't have Java, download and install [Java JDK](https://www.oracle.com/java/technologies/downloads/) first.
+
+**Step 2: Find keytool location**
+```powershell
+Get-ChildItem -Path "C:\Program Files\Java" -Recurse -Filter "keytool.exe" -ErrorAction SilentlyContinue | Select-Object FullName
+```
+
+**Step 3: Create debug keystore (if it doesn't exist)**
+```powershell
+# Create .android directory
+New-Item -Path "$env:USERPROFILE\.android" -ItemType Directory -Force
+
+# Generate debug keystore (replace jdk-21 with your version)
+& "C:\Program Files\Java\jdk-21\bin\keytool.exe" -genkeypair -v -keystore "$env:USERPROFILE\.android\debug.keystore" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+```
+
+**Step 4: Get SHA-1 fingerprint**
+```powershell
+& "C:\Program Files\Java\jdk-21\bin\keytool.exe" -list -v -keystore "$env:USERPROFILE\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android
+```
+
+---
+
+#### **If you HAVE Android Studio installed:**
+
+**Windows (PowerShell):**
 ```powershell
 & "C:\Program Files\Android\Android Studio\jbr\bin\keytool.exe" -list -v -keystore "$env:USERPROFILE\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android
 ```
-
-**Option 2: If you have Java JDK installed separately**
-```powershell
-& "C:\Program Files\Java\jdk-17\bin\keytool.exe" -list -v -keystore "$env:USERPROFILE\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android
-```
-*(Replace `jdk-17` with your actual JDK version)*
 
 **Can't find keytool? Use this command to locate it:**
 ```powershell
