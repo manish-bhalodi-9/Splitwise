@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material Design 3 Color Palette -->
+    <!-- Generated from Material Theme Builder -->
+    
+    <!-- Primary Colors -->
+    <color name="md_theme_primary">#006A6A</color>
+    <color name="md_theme_onPrimary">#FFFFFF</color>
+    <color name="md_theme_primaryContainer">#6FF7F7</color>
+    <color name="md_theme_onPrimaryContainer">#002020</color>
+    
+    <!-- Secondary Colors -->
+    <color name="md_theme_secondary">#4A6363</color>
+    <color name="md_theme_onSecondary">#FFFFFF</color>
+    <color name="md_theme_secondaryContainer">#CCE8E7</color>
+    <color name="md_theme_onSecondaryContainer">#051F1F</color>
+    
+    <!-- Tertiary Colors -->
+    <color name="md_theme_tertiary">#4B607C</color>
+    <color name="md_theme_onTertiary">#FFFFFF</color>
+    <color name="md_theme_tertiaryContainer">#D3E4FF</color>
+    <color name="md_theme_onTertiaryContainer">#041C35</color>
+    
+    <!-- Error Colors -->
+    <color name="md_theme_error">#BA1A1A</color>
+    <color name="md_theme_errorContainer">#FFDAD6</color>
+    <color name="md_theme_onError">#FFFFFF</color>
+    <color name="md_theme_onErrorContainer">#410002</color>
+    
+    <!-- Background Colors -->
+    <color name="md_theme_background">#FAFDFC</color>
+    <color name="md_theme_onBackground">#191C1C</color>
+    
+    <!-- Surface Colors -->
+    <color name="md_theme_surface">#FAFDFC</color>
+    <color name="md_theme_onSurface">#191C1C</color>
+    <color name="md_theme_surfaceVariant">#DAE5E4</color>
+    <color name="md_theme_onSurfaceVariant">#3F4948</color>
+    
+    <!-- Outline -->
+    <color name="md_theme_outline">#6F7979</color>
+    
+    <!-- Status Colors -->
+    <color name="status_active">#FF9800</color>
+    <color name="status_settled">#4CAF50</color>
+    <color name="status_deleted">#F44336</color>
+    <color name="status_pending">#FFC107</color>
+    
+    <!-- Category Colors -->
+    <color name="category_food">#FF6B6B</color>
+    <color name="category_groceries">#4ECDC4</color>
+    <color name="category_transport">#45B7D1</color>
+    <color name="category_housing">#96CEB4</color>
+    <color name="category_entertainment">#FFEAA7</color>
+    <color name="category_healthcare">#DFE6E9</color>
+    <color name="category_shopping">#A29BFE</color>
+    <color name="category_bills">#FD79A8</color>
+    <color name="category_travel">#74B9FF</color>
+    <color name="category_education">#FFB8B8</color>
+    <color name="category_gifts">#FF7675</color>
+    <color name="category_maintenance">#636E72</color>
+    <color name="category_others">#95A5A6</color>
+    
+    <!-- Common Colors -->
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="transparent">#00000000</color>
+</resources>

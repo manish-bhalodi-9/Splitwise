@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Expense Splitter</string>
+    
+    <!-- Google OAuth -->
+    <string name="google_client_id">YOUR_GOOGLE_CLIENT_ID_HERE</string>
+    
+    <!-- Authentication -->
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="authenticating">Authenticating…</string>
+    <string name="authentication_failed">Authentication failed</string>
+    <string name="welcome_back">Welcome back, %s!</string>
+    
+    <!-- Dashboard -->
+    <string name="dashboard">Dashboard</string>
+    <string name="total_expenses_this_month">Total Expenses This Month</string>
+    <string name="your_share">Your Share</string>
+    <string name="current_balance">Current Balance</string>
+    <string name="you_owe">You owe %s</string>
+    <string name="you_are_owed">You are owed %s</string>
+    <string name="settled">Settled</string>
+    <string name="recent_expenses">Recent Expenses</string>
+    <string name="no_expenses">No expenses yet</string>
+    <string name="add_your_first_expense">Add your first expense to get started</string>
+    
+    <!-- Expenses -->
+    <string name="expenses">Expenses</string>
+    <string name="add_expense">Add Expense</string>
+    <string name="edit_expense">Edit Expense</string>
+    <string name="expense_details">Expense Details</string>
+    <string name="description">Description</string>
+    <string name="amount">Amount</string>
+    <string name="date">Date</string>
+    <string name="category">Category</string>
+    <string name="paid_by">Paid By</string>
+    <string name="split_with">Split With</string>
+    <string name="split_type">Split Type</string>
+    <string name="notes">Notes</string>
+    <string name="receipt">Receipt</string>
+    <string name="add_receipt">Add Receipt</string>
+    <string name="tags">Tags</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    
+    <!-- Split Types -->
+    <string name="split_equally">Split Equally</string>
+    <string name="exact_amounts">Exact Amounts</string>
+    <string name="percentages">Percentages</string>
+    <string name="shares">Shares</string>
+    
+    <!-- Categories -->
+    <string name="food_dining">Food &amp; Dining</string>
+    <string name="groceries">Groceries</string>
+    <string name="transportation">Transportation</string>
+    <string name="housing">Housing &amp; Utilities</string>
+    <string name="entertainment">Entertainment</string>
+    <string name="healthcare">Healthcare</string>
+    <string name="shopping">Shopping</string>
+    <string name="bills_emis">Bills &amp; EMIs</string>
+    <string name="travel">Travel</string>
+    <string name="education">Education</string>
+    <string name="gifts">Gifts</string>
+    <string name="maintenance">Maintenance</string>
+    <string name="others">Others</string>
+    
+    <!-- Analytics -->
+    <string name="analytics">Analytics</string>
+    <string name="reports">Reports</string>
+    <string name="monthly_analysis">Monthly Analysis</string>
+    <string name="category_breakdown">Category Breakdown</string>
+    <string name="spending_trend">Spending Trend</string>
+    <string name="export_report">Export Report</string>
+    <string name="last_3_months">Last 3 Months</string>
+    <string name="last_6_months">Last 6 Months</string>
+    <string name="this_year">This Year</string>
+    
+    <!-- Groups -->
+    <string name="groups">Groups</string>
+    <string name="create_group">Create Group</string>
+    <string name="group_name">Group Name</string>
+    <string name="group_description">Group Description</string>
+    <string name="members">Members</string>
+    <string name="add_member">Add Member</string>
+    <string name="no_groups">No groups yet</string>
+    <string name="create_first_group">Create your first group to start tracking expenses</string>
+    <string name="switch_group">Switch Group</string>
+    <string name="active_group">Active Group</string>
+    
+    <!-- Settlement -->
+    <string name="settle_up">Settle Up</string>
+    <string name="settlement_history">Settlement History</string>
+    <string name="mark_as_settled">Mark as Settled</string>
+    <string name="settlement_notes">Settlement Notes</string>
+    <string name="settlement_date">Settlement Date</string>
+    
+    <!-- Settings -->
+    <string name="settings">Settings</string>
+    <string name="profile">Profile</string>
+    <string name="preferences">Preferences</string>
+    <string name="theme">Theme</string>
+    <string name="currency">Currency</string>
+    <string name="notifications">Notifications</string>
+    <string name="data_sync">Data Sync</string>
+    <string name="about">About</string>
+    <string name="version">Version</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="terms_of_service">Terms of Service</string>
+    
+    <!-- Sync -->
+    <string name="syncing">Syncing…</string>
+    <string name="synced">Synced</string>
+    <string name="sync_failed">Sync failed</string>
+    <string name="offline_mode">Offline Mode</string>
+    <string name="sync_pending">Sync pending</string>
+    <string name="last_synced">Last synced: %s</string>
+    <string name="pull_to_refresh">Pull to refresh</string>
+    
+    <!-- Filters & Search -->
+    <string name="filter">Filter</string>
+    <string name="search">Search</string>
+    <string name="search_expenses">Search expenses…</string>
+    <string name="filter_by_category">Filter by Category</string>
+    <string name="filter_by_date">Filter by Date</string>
+    <string name="date_range">Date Range</string>
+    <string name="clear_filters">Clear Filters</string>
+    <string name="apply">Apply</string>
+    
+    <!-- Dialogs & Messages -->
+    <string name="confirm">Confirm</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="ok">OK</string>
+    <string name="delete_expense_confirmation">Are you sure you want to delete this expense?</string>
+    <string name="delete_group_confirmation">Are you sure you want to delete this group? All expenses will be lost.</string>
+    <string name="expense_added">Expense added successfully</string>
+    <string name="expense_updated">Expense updated successfully</string>
+    <string name="expense_deleted">Expense deleted</string>
+    <string name="error_occurred">An error occurred</string>
+    <string name="loading">Loading…</string>
+    
+    <!-- Validation -->
+    <string name="field_required">This field is required</string>
+    <string name="invalid_amount">Invalid amount</string>
+    <string name="amount_must_be_positive">Amount must be greater than zero</string>
+    <string name="description_too_long">Description is too long</string>
+    <string name="future_date_not_allowed">Future date is not allowed</string>
+    
+    <!-- Empty States -->
+    <string name="no_data_available">No data available</string>
+    <string name="no_results_found">No results found</string>
+    <string name="try_different_search">Try a different search term</string>
+    
+    <!-- Permissions -->
+    <string name="camera_permission_required">Camera permission is required to capture receipts</string>
+    <string name="storage_permission_required">Storage permission is required to access photos</string>
+    <string name="grant_permission">Grant Permission</string>
+    
+    <!-- Currency Symbols -->
+    <string name="currency_inr">₹</string>
+    <string name="currency_usd">$</string>
+    <string name="currency_eur">€</string>
+    <string name="currency_gbp">£</string>
+</resources>
