@@ -31,6 +31,12 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        
+        // Enable 16 KB page size support
+        ndk {
+            //noinspection ChromeOsAbiSupport
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+        }
 
         // Load Google Client ID from local.properties
         val googleClientId = localProperties.getProperty("google.client.id") ?: ""
@@ -95,6 +101,9 @@ android {
             excludes += "META-INF/notice.txt"
             excludes += "META-INF/*.kotlin_module"
             excludes += "META-INF/INDEX.LIST"
+        }
+        jniLibs {
+            useLegacyPackaging = false
         }
     }
 }

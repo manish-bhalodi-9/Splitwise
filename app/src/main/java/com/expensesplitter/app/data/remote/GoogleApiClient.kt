@@ -45,13 +45,13 @@ class GoogleApiClient @Inject constructor(
     
     fun getGoogleSignInClient(clientId: String): GoogleSignInClient {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(clientId)
             .requestEmail()
             .requestProfile()
             .requestScopes(
                 com.google.android.gms.common.api.Scope(SheetsScopes.SPREADSHEETS),
                 com.google.android.gms.common.api.Scope(DriveScopes.DRIVE_FILE)
             )
-            .requestServerAuthCode(clientId)
             .build()
         
         return GoogleSignIn.getClient(context, gso)
