@@ -11,6 +11,8 @@ object FormatUtils {
     private val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
     private val dateTimeFormat = SimpleDateFormat("MMM dd, yyyy h:mm a", Locale.getDefault())
     private val monthYearFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
+    private val monthShortFormat = SimpleDateFormat("MMM", Locale.getDefault())
+    private val dayFormat = SimpleDateFormat("dd", Locale.getDefault())
     
     fun formatCurrency(amount: Double, currencyCode: String = "INR"): String {
         val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
@@ -32,6 +34,14 @@ object FormatUtils {
     
     fun formatMonthYear(timestamp: Long): String {
         return monthYearFormat.format(Date(timestamp))
+    }
+    
+    fun formatMonthShort(timestamp: Long): String {
+        return monthShortFormat.format(Date(timestamp))
+    }
+    
+    fun formatDay(timestamp: Long): String {
+        return dayFormat.format(Date(timestamp))
     }
     
     fun getMonthStartTimestamp(timestamp: Long): Long {

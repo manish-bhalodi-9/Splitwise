@@ -5,9 +5,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
@@ -78,26 +82,48 @@ fun CreateGroupScreen(
                 maxLines = 4
             )
             
-            // Member Email
-            OutlinedTextField(
-                value = uiState.memberEmail,
-                onValueChange = { viewModel.onMemberEmailChange(it) },
-                label = { Text("Add Member (Optional)") },
-                placeholder = { Text("friend@gmail.com") },
-                modifier = Modifier.fillMaxWidth(),
-                isError = uiState.memberEmailError != null,
-                supportingText = {
-                    if (uiState.memberEmailError != null) {
-                        Text(uiState.memberEmailError!!)
-                    } else {
-                        Text("You can add more members later")
-                    }
-                },
-                enabled = !uiState.isLoading,
-                singleLine = true
+            // Members Section
+            Text(
+                text = "Members (Max 5 additional members)",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 8.dp)
             )
             
-            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = "You will be added as the group creator automatically",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            
+            // Member input fields
+            uiState.members.forEachIndexed { index, member ->
+                MemberInputCard(
+                    index = index,
+                    member = member,
+                    error = uiState.memberErrors[index],
+                    onEmailChange = { viewModel.onMemberFieldChange(index, "email", it) },
+                    onFirstNameChange = { viewModel.onMemberFieldChange(index, "firstName", it) },
+                    onGoogleIdChange = { viewModel.onMemberFieldChange(index, "googleId", it) },
+                    onRemove = { viewModel.removeMember(index) },
+                    enabled = !uiState.isLoading
+                )
+            }
+            
+            // Add Member Button
+            if (uiState.members.size < 5) {
+                OutlinedButton(
+                    onClick = { viewModel.addMember() },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !uiState.isLoading
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Add Member (${uiState.members.size}/5)")
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
             
             // Create Button
             Button(
@@ -144,6 +170,94 @@ fun CreateGroupScreen(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun MemberInputCard(
+    index: Int,
+    member: com.expensesplitter.app.data.model.MemberData,
+    error: String?,
+    onEmailChange: (String) -> Unit,
+    onFirstNameChange: (String) -> Unit,
+    onGoogleIdChange: (String) -> Unit,
+    onRemove: () -> Unit,
+    enabled: Boolean
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Member ${index + 1}",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                IconButton(
+                    onClick = onRemove,
+                    enabled = enabled
+                ) {
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = "Remove member",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+            
+            OutlinedTextField(
+                value = member.email,
+                onValueChange = onEmailChange,
+                label = { Text("Email *") },
+                placeholder = { Text("friend@gmail.com") },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = enabled,
+                singleLine = true,
+                isError = error != null
+            )
+            
+            OutlinedTextField(
+                value = member.firstName,
+                onValueChange = onFirstNameChange,
+                label = { Text("First Name *") },
+                placeholder = { Text("John") },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = enabled,
+                singleLine = true
+            )
+            
+            OutlinedTextField(
+                value = member.googleId,
+                onValueChange = onGoogleIdChange,
+                label = { Text("Google ID (Optional)") },
+                placeholder = { Text("114775293737264093813") },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = enabled,
+                singleLine = true,
+                supportingText = { Text("Numeric Google user ID", style = MaterialTheme.typography.bodySmall) }
+            )
+            
+            if (error != null) {
+                Text(
+                    text = error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }

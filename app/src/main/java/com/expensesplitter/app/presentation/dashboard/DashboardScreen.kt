@@ -233,6 +233,7 @@ fun DashboardScreen(
                             ExpenseListItem(
                                 expense = expense,
                                 currencyCode = uiState.currencyCode,
+                                currentUserEmail = uiState.currentUser?.email ?: "",
                                 onClick = { onNavigateToExpenseDetail(expense.expenseId) }
                             )
                         }
@@ -355,8 +356,14 @@ fun BalanceCard(
 fun ExpenseListItem(
     expense: ExpenseEntity,
     currencyCode: String,
+    currentUserEmail: String,
     onClick: () -> Unit
 ) {
+    // Determine if user lent or borrowed
+    // If paidBy == currentUser email, then "you lent", else "you borrowed"
+    val isPaidByCurrentUser = expense.paidBy == currentUserEmail
+    val halfAmount = expense.amount / 2.0
+    
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth()
@@ -365,9 +372,30 @@ fun ExpenseListItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Date column (Month and Day)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.width(50.dp)
+            ) {
+                Text(
+                    text = FormatUtils.formatMonthShort(expense.date),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = FormatUtils.formatDay(expense.date),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            
+            // Category icon
+            CategoryIcon(categoryId = expense.categoryId)
+            
+            // Description and paid by
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -380,17 +408,88 @@ fun ExpenseListItem(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = FormatUtils.formatDateTime(expense.createdAt),
+                    text = if (isPaidByCurrentUser) {
+                        "You paid ${FormatUtils.formatCurrency(expense.amount, currencyCode)}"
+                    } else {
+                        "${expense.paidBy.substringBefore("@")} paid ${FormatUtils.formatCurrency(expense.amount, currencyCode)}"
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             
-            Text(
-                text = FormatUtils.formatCurrency(expense.amount, currencyCode),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+            // Lent/Borrowed amount
+            Column(
+                horizontalAlignment = Alignment.End
+            ) {
+                Text(
+                    text = if (isPaidByCurrentUser) "you lent" else "you borrowed",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (isPaidByCurrentUser) 
+                        androidx.compose.ui.graphics.Color(0xFF4CAF50) // Green
+                    else 
+                        MaterialTheme.colorScheme.error // Red
+                )
+                Text(
+                    text = FormatUtils.formatCurrency(halfAmount, currencyCode),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isPaidByCurrentUser) 
+                        androidx.compose.ui.graphics.Color(0xFF4CAF50) // Green
+                    else 
+                        MaterialTheme.colorScheme.error // Red
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CategoryIcon(categoryId: String) {
+    // Simple category icon - enhanced with better categorization
+    val (icon, backgroundColor) = when {
+        categoryId.contains("food", ignoreCase = true) || 
+        categoryId.contains("restaurant", ignoreCase = true) ||
+        categoryId.contains("snack", ignoreCase = true) ||
+        categoryId.contains("groceries", ignoreCase = true) -> 
+            Icons.Default.ShoppingCart to androidx.compose.ui.graphics.Color(0xFFE8F5E9)
+        
+        categoryId.contains("transport", ignoreCase = true) ||
+        categoryId.contains("bus", ignoreCase = true) ||
+        categoryId.contains("travel", ignoreCase = true) ||
+        categoryId.contains("car", ignoreCase = true) ->
+            Icons.Default.DirectionsCar to androidx.compose.ui.graphics.Color(0xFFFCE4EC)
+        
+        categoryId.contains("entertainment", ignoreCase = true) ||
+        categoryId.contains("movie", ignoreCase = true) ->
+            Icons.Default.Movie to androidx.compose.ui.graphics.Color(0xFFFFF9C4)
+        
+        categoryId.contains("utilities", ignoreCase = true) ||
+        categoryId.contains("toilet", ignoreCase = true) ||
+        categoryId.contains("household", ignoreCase = true) ->
+            Icons.Default.Home to androidx.compose.ui.graphics.Color(0xFFE1F5FE)
+        
+        categoryId.contains("shopping", ignoreCase = true) ->
+            Icons.Default.ShoppingBag to androidx.compose.ui.graphics.Color(0xFFF3E5F5)
+        
+        else -> Icons.Default.Receipt to MaterialTheme.colorScheme.surfaceVariant
+    }
+    
+    Card(
+        modifier = Modifier.size(48.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor
+        )
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

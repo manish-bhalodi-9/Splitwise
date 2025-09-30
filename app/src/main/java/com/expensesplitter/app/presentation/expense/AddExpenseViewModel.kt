@@ -102,15 +102,24 @@ class AddExpenseViewModel @Inject constructor(
                 val currentUser = userRepository.getCurrentUser()
                 val currentUserEmail = currentUser?.email ?: ""
                 
+                // Parse member data to extract display strings (firstName <email>)
+                val memberDisplayList = group?.members?.map { memberString ->
+                    val parts = memberString.split("|")
+                    val email = parts.getOrNull(0) ?: memberString
+                    val firstName = parts.getOrNull(1) ?: email.substringBefore("@")
+                    "$firstName <$email>"
+                } ?: emptyList()
+                
                 _uiState.value = _uiState.value.copy(
                     activeGroupId = group?.groupId,
                     currentUserId = userId,
                     currentUserEmail = currentUserEmail,
-                    groupMembers = group?.members ?: emptyList(),
-                    paidByUser = currentUserEmail // Set current user email as default
+                    groupMembers = memberDisplayList,
+                    paidByUser = memberDisplayList.firstOrNull { it.contains(currentUserEmail) } ?: currentUserEmail
                 )
                 
                 Log.d("AddExpenseViewModel", "Loaded group members: ${group?.members}")
+                Log.d("AddExpenseViewModel", "Member display list: $memberDisplayList")
                 Log.d("AddExpenseViewModel", "Current user email: $currentUserEmail")
             } catch (e: Exception) {
                 Log.e("AddExpenseViewModel", "Error loading active group", e)
@@ -207,6 +216,13 @@ class AddExpenseViewModel @Inject constructor(
         
         val expenseId = UUID.randomUUID().toString()
         
+        // Extract email from display string "FirstName <email>"
+        val paidByEmail = if (state.paidByUser.contains("<") && state.paidByUser.contains(">")) {
+            state.paidByUser.substringAfter("<").substringBefore(">")
+        } else {
+            state.paidByUser.ifBlank { state.currentUserEmail }
+        }
+        
         // Create expense entity
         val expense = ExpenseEntity(
             expenseId = expenseId,
@@ -214,7 +230,7 @@ class AddExpenseViewModel @Inject constructor(
             description = state.description,
             amount = amountValue,
             categoryId = state.selectedCategory!!.categoryId,
-            paidBy = state.paidByUser.ifBlank { state.currentUserEmail },
+            paidBy = paidByEmail,
             date = state.date,
             splitType = when(state.splitMethod) {
                 SplitMethod.EQUAL -> com.expensesplitter.app.data.local.entity.SplitType.EQUAL
@@ -283,13 +299,20 @@ class AddExpenseViewModel @Inject constructor(
         val existingExpense = expenseRepository.getExpenseById(expenseId).first()
             ?: throw Exception("Expense not found")
         
+        // Extract email from display string "FirstName <email>"
+        val paidByEmail = if (state.paidByUser.contains("<") && state.paidByUser.contains(">")) {
+            state.paidByUser.substringAfter("<").substringBefore(">")
+        } else {
+            state.paidByUser.ifBlank { state.currentUserEmail }
+        }
+        
         // Create updated expense entity
         val updatedExpense = existingExpense.copy(
             description = state.description,
             amount = amountValue,
             categoryId = state.selectedCategory!!.categoryId,
             date = state.date,
-            paidBy = state.paidByUser.ifBlank { state.currentUserEmail },
+            paidBy = paidByEmail,
             splitType = when(state.splitMethod) {
                 SplitMethod.EQUAL -> com.expensesplitter.app.data.local.entity.SplitType.EQUAL
                 SplitMethod.EXACT -> com.expensesplitter.app.data.local.entity.SplitType.EXACT_AMOUNTS

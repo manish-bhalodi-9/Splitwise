@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.expensesplitter.app.data.local.entity.GroupEntity
+import com.expensesplitter.app.data.model.MemberData
 import com.expensesplitter.app.data.preferences.UserPreferencesRepository
 import com.expensesplitter.app.data.remote.GoogleSheetsService
 import com.expensesplitter.app.data.repository.GroupRepository
@@ -39,11 +40,45 @@ class CreateGroupViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(description = description)
     }
     
-    fun onMemberEmailChange(email: String) {
-        _uiState.value = _uiState.value.copy(
-            memberEmail = email,
-            memberEmailError = null
-        )
+    fun onMemberFieldChange(index: Int, field: String, value: String) {
+        val currentMembers = _uiState.value.members.toMutableList()
+        if (index < currentMembers.size) {
+            val member = currentMembers[index]
+            currentMembers[index] = when (field) {
+                "email" -> member.copy(email = value)
+                "firstName" -> member.copy(firstName = value)
+                "googleId" -> member.copy(googleId = value)
+                else -> member
+            }
+            _uiState.value = _uiState.value.copy(
+                members = currentMembers,
+                memberErrors = _uiState.value.memberErrors.toMutableMap().apply {
+                    remove(index)
+                }
+            )
+        }
+    }
+    
+    fun addMember() {
+        val currentMembers = _uiState.value.members
+        if (currentMembers.size < 5) {
+            _uiState.value = _uiState.value.copy(
+                members = currentMembers + MemberData()
+            )
+        }
+    }
+    
+    fun removeMember(index: Int) {
+        val currentMembers = _uiState.value.members.toMutableList()
+        if (index < currentMembers.size) {
+            currentMembers.removeAt(index)
+            _uiState.value = _uiState.value.copy(
+                members = currentMembers,
+                memberErrors = _uiState.value.memberErrors.toMutableMap().apply {
+                    remove(index)
+                }
+            )
+        }
     }
     
     fun createGroup() {
@@ -55,8 +90,22 @@ class CreateGroupViewModel @Inject constructor(
             return
         }
         
-        if (state.memberEmail.isNotBlank() && !isValidEmail(state.memberEmail)) {
-            _uiState.value = state.copy(memberEmailError = "Invalid email address")
+        // Validate members
+        val memberErrors = mutableMapOf<Int, String>()
+        state.members.forEachIndexed { index, member ->
+            if (member.email.isNotBlank() || member.firstName.isNotBlank() || member.googleId.isNotBlank()) {
+                if (member.email.isBlank()) {
+                    memberErrors[index] = "Email is required"
+                } else if (!isValidEmail(member.email)) {
+                    memberErrors[index] = "Invalid email address"
+                } else if (member.firstName.isBlank()) {
+                    memberErrors[index] = "First name is required"
+                }
+            }
+        }
+        
+        if (memberErrors.isNotEmpty()) {
+            _uiState.value = state.copy(memberErrors = memberErrors)
             return
         }
         
@@ -90,15 +139,21 @@ class CreateGroupViewModel @Inject constructor(
                 
                 val folderId = folderResult.getOrNull()!!
                 
-                // Create members list with emails only (no user IDs)
-                val members = if (state.memberEmail.isNotBlank()) {
-                    listOf(currentUserEmail, state.memberEmail)
-                } else {
-                    listOf(currentUserEmail)
-                }
+                // Create members list with current user and additional members
+                val currentUserMember = MemberData(
+                    email = currentUserEmail,
+                    firstName = currentUser?.displayName?.split(" ")?.firstOrNull() ?: "Me",
+                    googleId = currentUser?.userId ?: ""
+                )
+                
+                val validMembers = state.members.filter { it.isValid() }
+                val allMembers = listOf(currentUserMember) + validMembers
+                
+                // Convert to storage format for Google Sheets
+                val memberStrings = allMembers.map { it.toStorageString() }
                 
                 // Create spreadsheet with members
-                val sheetResult = sheetsService.createGroupSpreadsheet(state.groupName, members)
+                val sheetResult = sheetsService.createGroupSpreadsheet(state.groupName, memberStrings)
                 
                 if (sheetResult.isFailure) {
                     Log.e("CreateGroupViewModel", "Failed to create Google Sheet", sheetResult.exceptionOrNull())
@@ -132,7 +187,7 @@ class CreateGroupViewModel @Inject constructor(
                     driveFileId = driveFileId,
                     driveFolderId = folderId,
                     createdBy = userId,
-                    members = members,
+                    members = memberStrings,
                     isDefault = true // First group is default
                 )
                 
@@ -174,9 +229,9 @@ class CreateGroupViewModel @Inject constructor(
 data class CreateGroupUiState(
     val groupName: String = "",
     val description: String = "",
-    val memberEmail: String = "",
+    val members: List<MemberData> = emptyList(),
     val groupNameError: String? = null,
-    val memberEmailError: String? = null,
+    val memberErrors: Map<Int, String> = emptyMap(),
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val error: String? = null
