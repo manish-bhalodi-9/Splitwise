@@ -19,12 +19,20 @@ import androidx.compose.ui.text.input.ImeAction
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddExpenseScreen(
+    expenseId: String? = null,
     onNavigateBack: () -> Unit,
     onExpenseAdded: () -> Unit,
     viewModel: AddExpenseViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showDatePicker by remember { mutableStateOf(false) }
+    
+    // Load expense for editing if expenseId is provided
+    LaunchedEffect(expenseId) {
+        if (expenseId != null) {
+            viewModel.loadExpenseForEdit(expenseId)
+        }
+    }
     
     // Navigate back on success
     LaunchedEffect(uiState.isSuccess) {
@@ -63,7 +71,7 @@ fun AddExpenseScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Add Expense") },
+                title = { Text(if (uiState.isEditMode) "Edit Expense" else "Add Expense") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -151,6 +159,50 @@ fun AddExpenseScreen(
                 }
             )
             
+            // Paid By field (dropdown)
+            var paidByExpanded by remember { mutableStateOf(false) }
+            
+            ExposedDropdownMenuBox(
+                expanded = paidByExpanded,
+                onExpandedChange = { paidByExpanded = it },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = uiState.paidByUser,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Paid By") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = paidByExpanded) },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
+                
+                ExposedDropdownMenu(
+                    expanded = paidByExpanded,
+                    onDismissRequest = { paidByExpanded = false }
+                ) {
+                    if (uiState.groupMembers.isEmpty()) {
+                        DropdownMenuItem(
+                            text = { Text("No members available") },
+                            onClick = { },
+                            enabled = false
+                        )
+                    } else {
+                        uiState.groupMembers.forEach { member ->
+                            DropdownMenuItem(
+                                text = { Text(member) },
+                                onClick = {
+                                    viewModel.onPaidByUserChange(member)
+                                    paidByExpanded = false
+                                },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                            )
+                        }
+                    }
+                }
+            }
+            
             // Split method
             Card(
                 modifier = Modifier.fillMaxWidth()
@@ -206,7 +258,7 @@ fun AddExpenseScreen(
                 }
             }
             
-            // Add button
+            // Add/Update button
             Button(
                 onClick = viewModel::addExpense,
                 modifier = Modifier
@@ -220,7 +272,10 @@ fun AddExpenseScreen(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text("Add Expense", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        if (uiState.isEditMode) "Update Expense" else "Add Expense",
+                        style = MaterialTheme.typography.titleMedium
+                    )
                 }
             }
         }

@@ -19,7 +19,7 @@ class GoogleSheetsService @Inject constructor(
     /**
      * Create a new spreadsheet for a group
      */
-    suspend fun createGroupSpreadsheet(groupName: String): Result<Spreadsheet> = withContext(Dispatchers.IO) {
+    suspend fun createGroupSpreadsheet(groupName: String, members: List<String> = emptyList()): Result<Spreadsheet> = withContext(Dispatchers.IO) {
         try {
             val service = googleApiClient.sheetsService
                 ?: return@withContext Result.failure(Exception("Sheets service not initialized"))
@@ -42,8 +42,8 @@ class GoogleSheetsService @Inject constructor(
                 .setFields("spreadsheetId,spreadsheetUrl,sheets.properties")
                 .execute()
             
-            // Initialize metadata sheet
-            initializeMetadataSheet(result.spreadsheetId, groupName)
+            // Initialize metadata sheet with members
+            initializeMetadataSheet(result.spreadsheetId, groupName, members)
             
             Result.success(result)
         } catch (e: Exception) {
@@ -54,7 +54,7 @@ class GoogleSheetsService @Inject constructor(
     /**
      * Initialize metadata sheet with group information
      */
-    private suspend fun initializeMetadataSheet(spreadsheetId: String, groupName: String) = withContext(Dispatchers.IO) {
+    private suspend fun initializeMetadataSheet(spreadsheetId: String, groupName: String, members: List<String> = emptyList()) = withContext(Dispatchers.IO) {
         try {
             val service = googleApiClient.sheetsService ?: return@withContext
             
@@ -62,7 +62,7 @@ class GoogleSheetsService @Inject constructor(
                 listOf("Group Name", groupName),
                 listOf("Created Date", dateFormat.format(Date())),
                 listOf("Created By", googleApiClient.getLastSignedInAccount()?.email ?: ""),
-                listOf("Members", ""),
+                listOf("Members", members.joinToString(", ")),
                 listOf("Last Updated", dateFormat.format(Date()))
             )
             
@@ -129,17 +129,17 @@ class GoogleSheetsService @Inject constructor(
             
             val headers = listOf(
                 listOf(
-                    "Expense ID", "Date", "Description", "Amount", "Currency", "Category",
-                    "Paid By", "Split With", "Split Type", "Split Details", "Created By",
+                    "Expense ID", "Date", "Description", "Amount", "Category",
+                    "Paid By", "Split Type", "Split Details", "Created By",
                     "Created At", "Last Edited By", "Last Edited At", "Notes", "Receipt URL",
-                    "Tags", "Status", "Settled Date", "Settlement Notes"
+                    "Status", "Settled Date", "Settlement Notes"
                 )
             )
             
             val body = ValueRange().setValues(headers)
             
             service.spreadsheets().values()
-                .update(spreadsheetId, "$sheetName!A1:T1", body)
+                .update(spreadsheetId, "$sheetName!A1:Q1", body)
                 .setValueInputOption("RAW")
                 .execute()
             
@@ -198,7 +198,7 @@ class GoogleSheetsService @Inject constructor(
             val body = ValueRange().setValues(listOf(expenseData))
             
             service.spreadsheets().values()
-                .append(spreadsheetId, "$sheetName!A:T", body)
+                .append(spreadsheetId, "$sheetName!A:Q", body)
                 .setValueInputOption("RAW")
                 .setInsertDataOption("INSERT_ROWS")
                 .execute()
@@ -225,7 +225,7 @@ class GoogleSheetsService @Inject constructor(
             val body = ValueRange().setValues(listOf(expenseData))
             
             service.spreadsheets().values()
-                .update(spreadsheetId, "$sheetName!A$row:T$row", body)
+                .update(spreadsheetId, "$sheetName!A$row:Q$row", body)
                 .setValueInputOption("RAW")
                 .execute()
             
@@ -272,13 +272,116 @@ class GoogleSheetsService @Inject constructor(
                 ?: return@withContext Result.failure(Exception("Sheets service not initialized"))
             
             val response = service.spreadsheets().values()
-                .get(spreadsheetId, "$sheetName!A2:T") // Skip header row
+                .get(spreadsheetId, "$sheetName!A2:Q") // Skip header row
                 .execute()
             
             val values = response.getValues() ?: emptyList()
             Result.success(values)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+    
+    /**
+     * List all sheet names in a spreadsheet (excluding Metadata)
+     */
+    suspend fun listSheetNames(spreadsheetId: String): Result<List<String>> = withContext(Dispatchers.IO) {
+        try {
+            val service = googleApiClient.sheetsService
+                ?: return@withContext Result.failure(Exception("Sheets service not initialized"))
+            
+            val spreadsheet = service.spreadsheets()
+                .get(spreadsheetId)
+                .setFields("sheets.properties.title")
+                .execute()
+            
+            val sheetNames = spreadsheet.sheets
+                .map { it.properties.title }
+                .filter { it != "Metadata" }
+            
+            Result.success(sheetNames)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Get or create "Expense Splitter" folder in Google Drive
+     */
+    suspend fun getOrCreateExpenseSplitterFolder(): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val driveService = googleApiClient.driveService
+                ?: return@withContext Result.failure(Exception("Drive service not initialized"))
+            
+            // Search for existing folder
+            val query = "mimeType='application/vnd.google-apps.folder' and name='Expense Splitter' and trashed=false"
+            val result = driveService.files().list()
+                .setQ(query)
+                .setSpaces("drive")
+                .setFields("files(id, name)")
+                .execute()
+            
+            if (result.files.isNotEmpty()) {
+                return@withContext Result.success(result.files[0].id)
+            }
+            
+            // Create new folder
+            val folderMetadata = com.google.api.services.drive.model.File().apply {
+                name = "Expense Splitter"
+                mimeType = "application/vnd.google-apps.folder"
+            }
+            
+            val folder = driveService.files().create(folderMetadata)
+                .setFields("id")
+                .execute()
+            
+            Result.success(folder.id)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Move spreadsheet to folder
+     */
+    suspend fun moveSpreadsheetToFolder(spreadsheetId: String, folderId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val driveService = googleApiClient.driveService
+                ?: return@withContext Result.failure(Exception("Drive service not initialized"))
+            
+            // Get current parents
+            val file = driveService.files().get(spreadsheetId)
+                .setFields("parents")
+                .execute()
+            
+            val previousParents = file.parents?.joinToString(",") ?: ""
+            
+            // Move to new folder
+            driveService.files().update(spreadsheetId, null)
+                .setAddParents(folderId)
+                .setRemoveParents(previousParents)
+                .setFields("id, parents")
+                .execute()
+            
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Check if spreadsheet exists
+     */
+    suspend fun spreadsheetExists(spreadsheetId: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val service = googleApiClient.sheetsService ?: return@withContext false
+            service.spreadsheets()
+                .get(spreadsheetId)
+                .setFields("spreadsheetId")
+                .execute()
+            true
+        } catch (e: Exception) {
+            false
         }
     }
 }

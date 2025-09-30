@@ -1,13 +1,16 @@
 package com.expensesplitter.app.presentation
 
 import androidx.compose.runtime.*
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.expensesplitter.app.presentation.auth.AuthScreen
 import com.expensesplitter.app.presentation.dashboard.DashboardScreen
 import com.expensesplitter.app.presentation.expense.AddExpenseScreen
 import com.expensesplitter.app.presentation.group.CreateGroupScreen
+import com.expensesplitter.app.presentation.group.GroupListScreen
 
 @Composable
 fun ExpenseSplitterApp() {
@@ -35,14 +38,28 @@ fun ExpenseSplitterApp() {
                 onNavigateToCreateGroup = {
                     navController.navigate("createGroup")
                 },
-                onNavigateToExpenseDetail = { _ ->
-                    // TODO: Navigate to expense detail
+                onNavigateToGroups = {
+                    navController.navigate("groupList")
+                },
+                onNavigateToExpenseDetail = { expenseId ->
+                    navController.navigate("addExpense?expenseId=$expenseId")
                 }
             )
         }
         
-        composable("addExpense") {
+        composable(
+            route = "addExpense?expenseId={expenseId}",
+            arguments = listOf(
+                navArgument("expenseId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            val expenseId = backStackEntry.arguments?.getString("expenseId")
             AddExpenseScreen(
+                expenseId = expenseId,
                 onNavigateBack = {
                     navController.popBackStack()
                 },
@@ -58,6 +75,20 @@ fun ExpenseSplitterApp() {
                     navController.popBackStack()
                 },
                 onGroupCreated = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable("groupList") {
+            GroupListScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToCreateGroup = {
+                    navController.navigate("createGroup")
+                },
+                onGroupSelected = {
                     navController.popBackStack()
                 }
             )

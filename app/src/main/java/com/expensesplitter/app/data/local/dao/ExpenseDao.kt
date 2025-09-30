@@ -15,19 +15,19 @@ interface ExpenseDao {
     @Query("SELECT * FROM expenses WHERE expenseId = :expenseId")
     fun getExpenseByIdFlow(expenseId: String): Flow<ExpenseEntity?>
     
-    @Query("SELECT * FROM expenses WHERE groupId = :groupId AND status != 'DELETED' ORDER BY date DESC")
+    @Query("SELECT * FROM expenses WHERE groupId = :groupId AND status != 'DELETED' ORDER BY createdAt DESC")
     fun getExpensesByGroup(groupId: String): Flow<List<ExpenseEntity>>
     
-    @Query("SELECT * FROM expenses WHERE groupId = :groupId AND status = :status ORDER BY date DESC")
+    @Query("SELECT * FROM expenses WHERE groupId = :groupId AND status = :status ORDER BY createdAt DESC")
     fun getExpensesByGroupAndStatus(groupId: String, status: ExpenseStatus): Flow<List<ExpenseEntity>>
     
-    @Query("SELECT * FROM expenses WHERE groupId = :groupId AND date BETWEEN :startDate AND :endDate AND status != 'DELETED' ORDER BY date DESC")
+    @Query("SELECT * FROM expenses WHERE groupId = :groupId AND date BETWEEN :startDate AND :endDate AND status != 'DELETED' ORDER BY createdAt DESC")
     fun getExpensesByDateRange(groupId: String, startDate: Long, endDate: Long): Flow<List<ExpenseEntity>>
     
-    @Query("SELECT * FROM expenses WHERE groupId = :groupId AND categoryId = :categoryId AND status != 'DELETED' ORDER BY date DESC")
+    @Query("SELECT * FROM expenses WHERE groupId = :groupId AND categoryId = :categoryId AND status != 'DELETED' ORDER BY createdAt DESC")
     fun getExpensesByCategory(groupId: String, categoryId: String): Flow<List<ExpenseEntity>>
     
-    @Query("SELECT * FROM expenses WHERE groupId = :groupId AND categoryId = :categoryId AND date BETWEEN :startDate AND :endDate AND status != 'DELETED' ORDER BY date DESC")
+    @Query("SELECT * FROM expenses WHERE groupId = :groupId AND categoryId = :categoryId AND date BETWEEN :startDate AND :endDate AND status != 'DELETED' ORDER BY createdAt DESC")
     suspend fun getExpensesByCategoryAndDateRange(
         groupId: String,
         categoryId: String,
@@ -35,13 +35,13 @@ interface ExpenseDao {
         endDate: Long
     ): List<ExpenseEntity>
     
-    @Query("SELECT * FROM expenses WHERE groupId = :groupId AND paidBy = :userId AND status != 'DELETED' ORDER BY date DESC")
+    @Query("SELECT * FROM expenses WHERE groupId = :groupId AND paidBy = :userId AND status != 'DELETED' ORDER BY createdAt DESC")
     fun getExpensesByPaidBy(groupId: String, userId: String): Flow<List<ExpenseEntity>>
     
-    @Query("SELECT * FROM expenses WHERE groupId = :groupId AND (description LIKE '%' || :query || '%' OR notes LIKE '%' || :query || '%') AND status != 'DELETED' ORDER BY date DESC")
+    @Query("SELECT * FROM expenses WHERE groupId = :groupId AND (description LIKE '%' || :query || '%' OR notes LIKE '%' || :query || '%') AND status != 'DELETED' ORDER BY createdAt DESC")
     fun searchExpenses(groupId: String, query: String): Flow<List<ExpenseEntity>>
     
-    @Query("SELECT * FROM expenses WHERE groupId = :groupId AND status != 'DELETED' ORDER BY date DESC LIMIT :limit")
+    @Query("SELECT * FROM expenses WHERE groupId = :groupId AND status != 'DELETED' ORDER BY createdAt DESC LIMIT :limit")
     fun getRecentExpenses(groupId: String, limit: Int = 20): Flow<List<ExpenseEntity>>
     
     @Query("SELECT SUM(amount) FROM expenses WHERE groupId = :groupId AND status = 'ACTIVE'")

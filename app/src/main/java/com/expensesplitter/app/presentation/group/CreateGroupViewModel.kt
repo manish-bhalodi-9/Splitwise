@@ -7,6 +7,7 @@ import com.expensesplitter.app.data.local.entity.GroupEntity
 import com.expensesplitter.app.data.preferences.UserPreferencesRepository
 import com.expensesplitter.app.data.remote.GoogleSheetsService
 import com.expensesplitter.app.data.repository.GroupRepository
+import com.expensesplitter.app.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +21,8 @@ import javax.inject.Inject
 class CreateGroupViewModel @Inject constructor(
     private val groupRepository: GroupRepository,
     private val sheetsService: GoogleSheetsService,
-    private val preferencesRepository: UserPreferencesRepository
+    private val preferencesRepository: UserPreferencesRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(CreateGroupUiState())
@@ -64,15 +66,39 @@ class CreateGroupViewModel @Inject constructor(
             try {
                 Log.d("CreateGroupViewModel", "Creating group: ${state.groupName}")
                 
-                // Get current user ID
+                // Get current user ID and email
                 val userId = preferencesRepository.userId.first() ?: "unknown"
+                val currentUser = userRepository.getCurrentUser()
+                val currentUserEmail = currentUser?.email ?: ""
                 
                 // Generate group ID
                 val groupId = UUID.randomUUID().toString()
                 
                 // Create Google Sheet
                 Log.d("CreateGroupViewModel", "Creating Google Sheet for group: ${state.groupName}")
-                val sheetResult = sheetsService.createGroupSpreadsheet(state.groupName)
+                
+                // Get or create Expense Splitter folder
+                val folderResult = sheetsService.getOrCreateExpenseSplitterFolder()
+                if (folderResult.isFailure) {
+                    Log.e("CreateGroupViewModel", "Failed to create folder", folderResult.exceptionOrNull())
+                    _uiState.value = state.copy(
+                        isLoading = false,
+                        error = "Failed to create folder: ${folderResult.exceptionOrNull()?.message}"
+                    )
+                    return@launch
+                }
+                
+                val folderId = folderResult.getOrNull()!!
+                
+                // Create members list with emails only (no user IDs)
+                val members = if (state.memberEmail.isNotBlank()) {
+                    listOf(currentUserEmail, state.memberEmail)
+                } else {
+                    listOf(currentUserEmail)
+                }
+                
+                // Create spreadsheet with members
+                val sheetResult = sheetsService.createGroupSpreadsheet(state.groupName, members)
                 
                 if (sheetResult.isFailure) {
                     Log.e("CreateGroupViewModel", "Failed to create Google Sheet", sheetResult.exceptionOrNull())
@@ -84,26 +110,27 @@ class CreateGroupViewModel @Inject constructor(
                 }
                 
                 val spreadsheet = sheetResult.getOrNull()!!
-                val sheetId = spreadsheet.spreadsheetId
-                val driveFileId = spreadsheet.spreadsheetId // Same as sheet ID
-                val driveFolderId = "" // Can be set later if needed
                 
-                Log.d("CreateGroupViewModel", "Google Sheet created: $sheetId")
-                
-                // Create group entity
-                val members = if (state.memberEmail.isNotBlank()) {
-                    listOf(userId, state.memberEmail)
-                } else {
-                    listOf(userId)
+                // Move spreadsheet to Expense Splitter folder
+                val moveResult = sheetsService.moveSpreadsheetToFolder(spreadsheet.spreadsheetId, folderId)
+                if (moveResult.isFailure) {
+                    Log.e("CreateGroupViewModel", "Failed to move spreadsheet to folder", moveResult.exceptionOrNull())
+                    // Don't fail the whole operation if move fails
                 }
                 
+                val sheetId = spreadsheet.spreadsheetId
+                val driveFileId = spreadsheet.spreadsheetId // Same as sheet ID
+                
+                Log.d("CreateGroupViewModel", "Google Sheet created: $sheetId, Folder: $folderId")
+                
+                // Create group entity (reuse members from above)
                 val group = GroupEntity(
                     groupId = groupId,
                     groupName = state.groupName,
                     description = state.description.takeIf { it.isNotBlank() },
                     sheetId = sheetId,
                     driveFileId = driveFileId,
-                    driveFolderId = driveFolderId,
+                    driveFolderId = folderId,
                     createdBy = userId,
                     members = members,
                     isDefault = true // First group is default

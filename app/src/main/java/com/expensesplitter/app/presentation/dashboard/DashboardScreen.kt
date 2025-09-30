@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,6 +22,7 @@ import com.expensesplitter.app.util.FormatUtils
 fun DashboardScreen(
     onNavigateToAddExpense: () -> Unit,
     onNavigateToCreateGroup: () -> Unit,
+    onNavigateToGroups: () -> Unit,
     onNavigateToExpenseDetail: (String) -> Unit,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
@@ -41,6 +43,9 @@ fun DashboardScreen(
                     )
                 },
                 actions = {
+                    IconButton(onClick = onNavigateToGroups) {
+                        Icon(Icons.Default.Group, contentDescription = "Groups")
+                    }
                     IconButton(onClick = { viewModel.refreshData() }) {
                         Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                     }
@@ -115,10 +120,21 @@ fun DashboardScreen(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    // Month Selector
+                    if (uiState.availableMonths.isNotEmpty()) {
+                        item {
+                            MonthSelector(
+                                availableMonths = uiState.availableMonths,
+                                selectedMonth = uiState.selectedMonth ?: uiState.availableMonths.firstOrNull() ?: "",
+                                onMonthSelected = { viewModel.selectMonth(it) }
+                            )
+                        }
+                    }
+                    
                     // Summary Cards
                     item {
                         Text(
-                            text = "This Month",
+                            text = uiState.selectedMonth ?: "This Month",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -364,7 +380,7 @@ fun ExpenseListItem(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = FormatUtils.formatDate(expense.date),
+                    text = FormatUtils.formatDateTime(expense.createdAt),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -376,6 +392,62 @@ fun ExpenseListItem(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MonthSelector(
+    availableMonths: List<String>,
+    selectedMonth: String,
+    onMonthSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    ) {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            OutlinedTextField(
+                value = selectedMonth,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Select Month") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface
+                ),
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+            )
+            
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                availableMonths.forEach { month ->
+                    DropdownMenuItem(
+                        text = { Text(month) },
+                        onClick = {
+                            onMonthSelected(month)
+                            expanded = false
+                        },
+                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                    )
+                }
+            }
         }
     }
 }
