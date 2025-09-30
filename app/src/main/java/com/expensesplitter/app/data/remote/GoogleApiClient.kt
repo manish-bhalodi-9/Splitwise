@@ -43,9 +43,10 @@ class GoogleApiClient @Inject constructor(
     val driveService: Drive?
         get() = _driveService
     
-    fun getGoogleSignInClient(clientId: String): GoogleSignInClient {
+    fun getGoogleSignInClient(androidClientId: String, webClientId: String): GoogleSignInClient {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(clientId)
+            .requestIdToken(webClientId)  // Use Web Client ID for ID token
+            .requestServerAuthCode(webClientId)  // Use Web Client ID for server auth
             .requestEmail()
             .requestProfile()
             .requestScopes(

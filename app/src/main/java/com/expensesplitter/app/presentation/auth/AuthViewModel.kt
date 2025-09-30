@@ -47,10 +47,12 @@ class AuthViewModel @Inject constructor(
     }
     
     fun getSignInIntent(): Intent {
-        // Get client ID from resources (generated from local.properties at build time)
-        val clientId = context.getString(R.string.google_client_id)
-        android.util.Log.d("AuthViewModel", "Client ID: $clientId")
-        return googleApiClient.getGoogleSignInClient(clientId).signInIntent
+        // Get both client IDs from resources (generated from local.properties at build time)
+        val androidClientId = context.getString(R.string.google_client_id)
+        val webClientId = context.getString(R.string.google_web_client_id)
+        android.util.Log.d("AuthViewModel", "Android Client ID: $androidClientId")
+        android.util.Log.d("AuthViewModel", "Web Client ID: $webClientId")
+        return googleApiClient.getGoogleSignInClient(androidClientId, webClientId).signInIntent
     }
     
     fun handleSignInResult(data: Intent?) {

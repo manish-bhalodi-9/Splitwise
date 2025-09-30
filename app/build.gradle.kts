@@ -38,10 +38,12 @@ android {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a")
         }
 
-        // Load Google Client ID from local.properties
+        // Load Google Client IDs from local.properties
         val googleClientId = localProperties.getProperty("google.client.id") ?: ""
+        val googleWebClientId = localProperties.getProperty("google.web.client.id") ?: ""
         buildConfigField("String", "GOOGLE_CLIENT_ID", "\"$googleClientId\"")
         resValue("string", "google_client_id", googleClientId)
+        resValue("string", "google_web_client_id", googleWebClientId)
 
         // Room schema export directory
         ksp {
